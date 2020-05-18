@@ -1,0 +1,20 @@
+name: multistep_example
+
+conda_env: conda.yaml
+
+entry_points:
+  load_raw_data:
+    command: "python3 load_raw_data.py"
+
+  etl_data:
+    parameters:
+      bankloan_csv: path
+    command: "python3 etl_data.py --bankloan-csv {bankloan_csv}"
+
+  train_xgboost:
+    parameters:
+      bankloan_data: path
+    command: "python3 train_xgboost.py --banloan-data {bankloan_data}"
+
+  main:
+    command: "python3 main.py"
