@@ -48,6 +48,7 @@ def _already_ran(entry_point_name, parameters, experiment_id=None):
 # - changes in code
 # - changes in dependant steps
 def _get_or_run(entrypoint, parameters, use_cache=True):
+    print("PARAAMS",parameters)
     existing_run = _already_ran(entrypoint, parameters)
     if use_cache and existing_run:
         print("Found existing run for entrypoint=%s and parameters=%s" % (entrypoint, parameters))
@@ -61,13 +62,12 @@ def workflow():
     # Note: The entrypoint names are defined in MLproject. The artifact directories
     # are documented by each step's .py file.
     with mlflow.start_run() as active_run:
-        load_raw_data_run = _get_or_run("load_raw_data", {})
-        bankloan_csv_uri = os.path.join(load_raw_data_run.info.artifact_uri, "bankloan-csv-dir")
-        etl_data_run = _get_or_run("etl_data",
-                                   {"bankloan_csv": bankloan_csv_uri})
+        load_data_run = _get_or_run("load_data", {})
+        bankloan_csv_uri = os.path.join(load_data_run.info.artifact_uri, "bankloan-csv-dir")
+        etl_data_run = _get_or_run("etl_data",{"bankloan_csv": bankloan_csv_uri})
         bankloan_clean_uri = os.path.join(etl_data_run.info.artifact_uri, "bankloan_clean_dir")
 
-        _get_or_run("train_xgboost",  {"banloan_data": bankloan_clean_uri}, use_cache=False)
+        _get_or_run("train_xgboost",  {"bankloan_data": bankloan_clean_uri}, use_cache=False)
 
 
 if __name__ == '__main__':

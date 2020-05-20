@@ -3,15 +3,25 @@ import os
 import pandas as pd
 import numpy as np
 import mlflow
+import argparse
+import sys
+import click
 
 
+@click.command(help="Given a CSV file (see load_raw_data), transforms it into Parquet "
+                    "in an mlflow artifact called 'bankloan-csv-dir'")
+@click.option("--bankloan-csv")
+@click.option("--namecsv", default="BankLoan.csv")
+@click.option("--namecsvetl", default="Bank_Loan_clean.csv")
 
-def etl_data(bankloan_csv):
+def etl_data(bankloan_csv, namecsv, namecsvetl):
     with mlflow.start_run() as mlrun:
         tmpdir = tempfile.mkdtemp()
         bankloan_clean_dir = os.path.join(tmpdir, 'Bank_Loan_clean')
+        os.mkdir(bankloan_clean_dir)
 
-        data = pd.read_csv(bankloan_csv)
+        #data = pd.read_csv(bankloan_csv)
+        data = pd.read_csv(os.path.join(bankloan_csv, namecsv), encoding='utf-8', engine='python')
         # No columns have null data in the file
         data.apply(lambda x : sum(x.isnull()))
 
@@ -40,9 +50,8 @@ def etl_data(bankloan_csv):
         data[data['Experience'] < 0]['Experience'].count()
 
 
-        data.to_csv(os.path.join(bankloan_clean_dir,'Bank_Loan_clean.csv'))
+        data.to_csv(os.path.join(bankloan_clean_dir,namecsvetl))
 
-        ratings_df.write.parquet(ratings_parquet_dir)
         print("Uploading Parquet ratings: %s" % bankloan_clean_dir)
         mlflow.log_artifacts(bankloan_clean_dir, "bankloan_clean_dir")
 
